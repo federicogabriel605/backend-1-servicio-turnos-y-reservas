@@ -1,13 +1,18 @@
 import { Router } from 'express';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { ServiceManager } from '../managers/ServiceManager.js';
 
-const router = Router();
-const serviceManager = new ServiceManager();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// GET /api/services (con soporte de ?category=... y ?available=true/false)
-router.get('/', (req, res) => {
+const router = Router();
+const serviceManager = new ServiceManager(path.resolve(__dirname, '../data/services.json'));
+
+// GET /api/services
+router.get('/', async (req, res) => {
   try {
-    let services = serviceManager.getServices();
+    let services = await serviceManager.getServices();
     const { category, available } = req.query;
 
     if (category) {
@@ -28,10 +33,10 @@ router.get('/', (req, res) => {
 });
 
 // GET /api/services/:sid
-router.get('/:sid', (req, res) => {
+router.get('/:sid', async (req, res) => {
   try {
     const { sid } = req.params;
-    const service = serviceManager.getServiceById(sid);
+    const service = await serviceManager.getServiceById(sid);
 
     if (!service) {
       return res.status(404).json({ status: 'error', message: 'Servicio no encontrado' });
@@ -44,9 +49,9 @@ router.get('/:sid', (req, res) => {
 });
 
 // POST /api/services
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    const newService = serviceManager.addService(req.body);
+    const newService = await serviceManager.addService(req.body);
     return res.status(201).json({ status: 'success', data: newService });
   } catch (error) {
     return res.status(400).json({ status: 'error', message: error.message });
@@ -54,10 +59,10 @@ router.post('/', (req, res) => {
 });
 
 // PUT /api/services/:sid
-router.put('/:sid', (req, res) => {
+router.put('/:sid', async (req, res) => {
   try {
     const { sid } = req.params;
-    const updatedService = serviceManager.updateService(sid, req.body);
+    const updatedService = await serviceManager.updateService(sid, req.body);
 
     if (!updatedService) {
       return res.status(404).json({ status: 'error', message: 'Servicio no encontrado' });
@@ -70,10 +75,10 @@ router.put('/:sid', (req, res) => {
 });
 
 // DELETE /api/services/:sid
-router.delete('/:sid', (req, res) => {
+router.delete('/:sid', async (req, res) => {
   try {
     const { sid } = req.params;
-    const deletedService = serviceManager.deleteService(sid);
+    const deletedService = await serviceManager.deleteService(sid);
 
     if (!deletedService) {
       return res.status(404).json({ status: 'error', message: 'Servicio no encontrado' });

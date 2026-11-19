@@ -1,0 +1,11 @@
+[
+  {
+    "id": "9d1d9b03-ce07-4d1c-8b6d-438e84baa2d0",
+    "name": "Corte de pelo",
+    "description": "Corte clásico con tijera y máquina",
+    "duration": 30,
+    "price": 2500,
+    "category": "Peluquería",
+    "available": true
+  }
+]

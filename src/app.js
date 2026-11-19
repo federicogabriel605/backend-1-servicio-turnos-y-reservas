@@ -1,13 +1,14 @@
 import express from 'express';
 import servicesRouter from './routes/services.router.js';
+import bookingsRouter from './routes/bookings.router.js';
 
 const app = express();
 
-// Middlewares para procesar JSON y formularios
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Rutas de la API
 app.use('/api/services', servicesRouter);
+app.use('/api/bookings', bookingsRouter);
 
 export default app;

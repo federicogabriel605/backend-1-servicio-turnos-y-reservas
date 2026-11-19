@@ -1,29 +1,30 @@
+import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 
 export class ServiceManager {
-  constructor() {
-    this.services = [];
+  constructor(filePath) {
+    this.path = filePath;
   }
 
-  // Devuelve todos los servicios
-  getServices() {
-    return this.services;
-  }
-
-  // Busca un servicio por id
-  getServiceById(id) {
-    const service = this.services.find((s) => s.id === id);
-    if (!service) {
-      return null;
+  async getServices() {
+    try {
+      const data = await fs.readFile(this.path, 'utf-8');
+      return JSON.parse(data);
+    } catch {
+      return [];
     }
-    return service;
   }
 
-  // Agrega un nuevo servicio con validaciones e id autogenerado
-  addService(serviceData) {
+  async getServiceById(id) {
+    const services = await this.getServices();
+    const cleanId = String(id).trim();
+    const service = services.find((s) => String(s.id).trim() === cleanId);
+    return service || null;
+  }
+
+  async addService(serviceData) {
     const { name, description, duration, price, category, available } = serviceData;
 
-    // Validación de campos obligatorios
     if (
       !name ||
       !description ||
@@ -35,48 +36,54 @@ export class ServiceManager {
       throw new Error('Todos los campos son obligatorios: name, description, duration, price, category, available.');
     }
 
+    const services = await this.getServices();
+
     const newService = {
       id: crypto.randomUUID(),
-      name,
-      description,
-      duration,
-      price,
-      category,
-      available,
+      name: String(name).trim(),
+      description: String(description).trim(),
+      duration: Number(duration),
+      price: Number(price),
+      category: String(category).trim(),
+      available: Boolean(available),
     };
 
-    this.services.push(newService);
+    services.push(newService);
+    await fs.writeFile(this.path, JSON.stringify(services, null, 2), 'utf-8');
     return newService;
   }
 
-  // Actualiza los campos de un servicio sin modificar su id
-  updateService(id, updatedData) {
-    const serviceIndex = this.services.findIndex((s) => s.id === id);
+  async updateService(id, updatedData) {
+    const services = await this.getServices();
+    const cleanId = String(id).trim();
+    const index = services.findIndex((s) => String(s.id).trim() === cleanId);
 
-    if (serviceIndex === -1) {
+    if (index === -1) {
       return null;
     }
 
-    // Aseguramos que el id no se modifique
     const { id: _, ...dataToUpdate } = updatedData;
 
-    this.services[serviceIndex] = {
-      ...this.services[serviceIndex],
+    services[index] = {
+      ...services[index],
       ...dataToUpdate,
     };
 
-    return this.services[serviceIndex];
+    await fs.writeFile(this.path, JSON.stringify(services, null, 2), 'utf-8');
+    return services[index];
   }
 
-  // Elimina un servicio por id
-  deleteService(id) {
-    const serviceIndex = this.services.findIndex((s) => s.id === id);
+  async deleteService(id) {
+    const services = await this.getServices();
+    const cleanId = String(id).trim();
+    const index = services.findIndex((s) => String(s.id).trim() === cleanId);
 
-    if (serviceIndex === -1) {
+    if (index === -1) {
       return null;
     }
 
-    const [deletedService] = this.services.splice(serviceIndex, 1);
+    const [deletedService] = services.splice(index, 1);
+    await fs.writeFile(this.path, JSON.stringify(services, null, 2), 'utf-8');
     return deletedService;
   }
 }
