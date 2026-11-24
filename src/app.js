@@ -7,7 +7,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rutas de la API
 app.use('/api/services', servicesRouter);
 app.use('/api/bookings', bookingsRouter);
 
